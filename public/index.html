@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ms">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pendaftaran Peserta - Participant Registration</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <div class="backdrop backdrop-a"></div>
+    <div class="backdrop backdrop-b"></div>
+
+    <main class="shell">
+
+      <section class="workspace">
+        <div class="panel">
+          <h1 class="form-title">Borang Kehadiran Webinar - Attendant Webinar Form</h1>
+          <div class="panel-head">
+            <div>
+              <h2>Maklumat peserta - Participant Information</h2>
+            </div>
+          </div>
+
+          <form id="participantForm" class="form">
+
+            <div class="field">
+              <label for="webinarTitle">Tajuk webinar - Webinar Title</label>
+              <select id="webinarTitle" name="webinarTitle" required>
+                <!--WEBINAR_OPTIONS-->
+              </select>
+            </div>
+            <div class="field">
+              <label for="fullName">Nama penuh - Full Name</label>
+              <p class="help">(Rujuk Kepada Pendaftaran NTW - Refer to NTW registration)</p>
+              <input id="fullName" name="fullName" type="text" placeholder="Contoh: Ahmad Faris bin Ali" autocomplete="name" required />
+            </div>
+
+            <div class="field">
+              <label for="country">Negara - Country</label>
+              <select id="country" name="country" required>
+                <option value="Malaysia">Malaysia - Malaysia</option>
+                <option value="Other">Lain negara - Other country</option>
+              </select>
+            </div>
+
+            <div class="grid-2" id="identityGrid">
+              <div class="field">
+                <label id="identityLabel" for="identityNumber">No. Kad Pengenalan - Identity Card No.</label>
+                <p class="help" id="identityHelp">(Rujuk Kepada Pendaftaran NTW - Refer to NTW registration)</p>
+                <input
+                  id="identityNumber"
+                  name="identityNumber"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="900101011234"
+                  autocomplete="off"
+                  required
+                />
+              </div>
+
+              <div class="field" id="passportGroup" hidden>
+                <label for="passportCountry">Negara pasport - Passport Country</label>
+                <input id="passportCountry" name="passportCountry" type="text" placeholder="Contoh: Singapore" autocomplete="country-name" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="email">Emel - Email</label>
+              <input id="email" name="email" type="email" placeholder="nama@domain.com" autocomplete="email" required />
+            </div>
+
+            <div class="field">
+              <label for="whatsappNumber">Nombor WhatsApp - WhatsApp Number</label>
+              <input id="whatsappNumber" name="whatsappNumber" type="text" placeholder="+60123456789" autocomplete="tel" required />
+              <p class="help" id="whatsappHelp">Malaysia - Malaysia: +60xxxxxxxxx. Sistem akan menormalkan nombor tempatan kepada format ini / The system will normalise local numbers to this format.</p>
+            </div>
+
+            <div class="field">
+              <label for="category">Kategori - Category</label>
+              <select id="category" name="category" required>
+                <option value="Pelajar">Pelajar - Student</option>
+                <option value="Bekerja">Bekerja - Working</option>
+                <option value="Bersara">Bersara - Retired</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="notes">Catatan - Notes</label>
+              <textarea id="notes" name="notes" rows="3"></textarea>
+            </div>
+
+            <div class="actions">
+              <button id="saveButton" type="submit">Hantar - Submit</button>
+              <button id="resetButton" type="button" class="secondary">Isi Semula - Reset</button>
+            </div>
+
+            <p id="formMessage" class="message" aria-live="polite"></p>
+          </form>
+        </div>
+
+      </section>
+    </main>
+  </body>
+</html>
