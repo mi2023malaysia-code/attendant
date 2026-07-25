@@ -1,35 +1,23 @@
-const http = require('http');
 const fs = require('fs/promises');
 const os = require('os');
 const path = require('path');
 const { URL } = require('url');
 
-const ROOT = __dirname;
-const PUBLIC_DIR = path.join(ROOT, 'public');
-const DATA_DIR = process.env.VERCEL ? path.join(os.tmpdir(), 'participant-intake') : path.join(ROOT, 'data');
+const ROOT = process.cwd();
 const WEBINAR_TXT_FILE = path.join(ROOT, 'webinar.txt');
-const PESERTA_CSV_FILE = process.env.VERCEL ? path.join(DATA_DIR, 'peserta.csv') : path.join(ROOT, 'peserta.csv');
+const DATA_DIR = path.join(os.tmpdir(), 'attendant-data');
 const STORAGE_FILE = path.join(DATA_DIR, 'submissions.jsonl');
-const RUNTIME_FILE = path.join(DATA_DIR, 'runtime.json');
-const PORT_START = Number(process.env.PORT || 3000);
-const PORT_END = PORT_START + 25;
+const PESERTA_CSV_FILE = path.join(DATA_DIR, 'peserta.csv');
 const GOOGLE_APPS_SCRIPT_URL = (process.env.GOOGLE_APPS_SCRIPT_URL || '').trim();
 const GOOGLE_WEBINAR_SHEET_NAME = (process.env.GOOGLE_WEBINAR_SHEET_NAME || 'webinar').trim() || 'webinar';
+
 const DEFAULT_WEBINARS = [
   { value: '201-codex     12 Jul 3pm', label: '201-codex     12 Jul 3pm' },
   { value: '202-claude    13 Jul 5', label: '202-claude    13 Jul 5' },
   { value: '303-chagrpt   21 Jul 5pm', label: '303-chagrpt   21 Jul 5pm' },
 ];
 
-const MIME_TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.js': 'application/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.txt': 'text/plain; charset=utf-8',
-};
-
-const PESERTA_CSV_FIELDS = [
+const CSV_FIELDS = [
   'id',
   'createdAt',
   'source',
@@ -47,15 +35,13 @@ const PESERTA_CSV_FIELDS = [
   'notes',
 ];
 
-const PESERTA_CSV_HEADER = PESERTA_CSV_FIELDS.join(',');
-
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+function sendJson(res, statusCode, payload) {
+  const body = JSON.stringify(payload, null, 2);
+  res.writeHead(statusCode, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store',
+  });
+  res.end(body);
 }
 
 function escapeCsvValue(value) {
@@ -67,42 +53,7 @@ function escapeCsvValue(value) {
 }
 
 function serializePesertaCsvRow(record) {
-  return PESERTA_CSV_FIELDS.map((field) => escapeCsvValue(record[field] ?? '')).join(',');
-}
-
-async function ensureDataFiles() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  try {
-    await fs.access(STORAGE_FILE);
-  } catch {
-    await fs.writeFile(STORAGE_FILE, '', 'utf8');
-  }
-
-  try {
-    const stats = await fs.stat(PESERTA_CSV_FILE);
-    if (stats.size === 0) {
-      await fs.writeFile(PESERTA_CSV_FILE, `${PESERTA_CSV_HEADER}\n`, 'utf8');
-    }
-  } catch {
-    await fs.writeFile(PESERTA_CSV_FILE, `${PESERTA_CSV_HEADER}\n`, 'utf8');
-  }
-}
-
-function sendJson(res, statusCode, payload) {
-  const body = JSON.stringify(payload, null, 2);
-  res.writeHead(statusCode, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Cache-Control': 'no-store',
-  });
-  res.end(body);
-}
-
-function sendText(res, statusCode, body, contentType = 'text/plain; charset=utf-8') {
-  res.writeHead(statusCode, {
-    'Content-Type': contentType,
-    'Cache-Control': 'no-store',
-  });
-  res.end(body);
+  return CSV_FIELDS.map((field) => escapeCsvValue(record[field] ?? '')).join(',');
 }
 
 function parseCsvLine(line) {
@@ -278,7 +229,7 @@ async function loadWebinarOptions() {
         return remoteItems;
       }
     } catch {
-      // Fall back to local files when the Google Sheet is unavailable.
+      // Fall back to the local text file when the sheet is unavailable.
     }
   }
 
@@ -293,25 +244,6 @@ async function loadWebinarOptions() {
 
     throw new Error(`Gagal baca webinar.txt: ${error.message}`);
   }
-}
-
-function renderWebinarOptions(items) {
-  const list = items.length > 0 ? items : DEFAULT_WEBINARS;
-
-  return list
-    .map((item, index) => {
-      const value = escapeHtml(item.value);
-      const label = escapeHtml(item.label || item.value);
-      const selected = index === 0 ? ' selected' : '';
-      return `                <option value="${value}"${selected}>${label}</option>`;
-    })
-    .join('\n');
-}
-
-async function renderIndexHtml() {
-  const template = await fs.readFile(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
-  const webinars = await loadWebinarOptions();
-  return template.replace('<!--WEBINAR_OPTIONS-->', renderWebinarOptions(webinars));
 }
 
 function normalizeMalaysiaWhatsApp(rawValue) {
@@ -426,10 +358,6 @@ function normalizeCountry(rawValue) {
   return value;
 }
 
-function normalizeBoolean(rawValue) {
-  return rawValue === true || rawValue === 'true' || rawValue === 'on' || rawValue === 1 || rawValue === '1';
-}
-
 async function readJsonBody(req) {
   const chunks = [];
   let total = 0;
@@ -448,6 +376,24 @@ async function readJsonBody(req) {
 
   const text = Buffer.concat(chunks).toString('utf8');
   return JSON.parse(text);
+}
+
+async function ensureDataFiles() {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  try {
+    await fs.access(STORAGE_FILE);
+  } catch {
+    await fs.writeFile(STORAGE_FILE, '', 'utf8');
+  }
+
+  try {
+    const stats = await fs.stat(PESERTA_CSV_FILE);
+    if (stats.size === 0) {
+      await fs.writeFile(PESERTA_CSV_FILE, `${CSV_FIELDS.join(',')}\n`, 'utf8');
+    }
+  } catch {
+    await fs.writeFile(PESERTA_CSV_FILE, `${CSV_FIELDS.join(',')}\n`, 'utf8');
+  }
 }
 
 async function appendLocalRecord(record) {
@@ -559,52 +505,10 @@ function buildRecord(body, allowedTitles) {
   };
 }
 
-function serveFile(res, filePath) {
-  const ext = path.extname(filePath).toLowerCase();
-  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-
-  if (ext === '.html' && path.basename(filePath) === 'index.html') {
-    renderIndexHtml()
-      .then((content) => {
-        res.writeHead(200, {
-          'Content-Type': contentType,
-          'Cache-Control': 'no-store',
-        });
-        res.end(content);
-      })
-      .catch(() => {
-        sendText(res, 404, 'Not found');
-      });
-    return;
-  }
-
-  fs.readFile(filePath)
-    .then((content) => {
-      res.writeHead(200, {
-        'Content-Type': contentType,
-        'Cache-Control': 'no-store',
-      });
-      res.end(content);
-    })
-    .catch(() => {
-      sendText(res, 404, 'Not found');
-    });
-}
-
-function resolvePublicFile(urlPath) {
-  const safePath = urlPath === '/' ? '/index.html' : urlPath;
-  const normalized = path.normalize(safePath).replace(/^(\.\.[\\/])+/, '');
-  const absolute = path.join(PUBLIC_DIR, normalized);
-
-  if (!absolute.startsWith(PUBLIC_DIR)) {
-    return null;
-  }
-
-  return absolute;
-}
-
 async function handler(req, res) {
-  const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+  await ensureDataFiles();
+
+  const requestUrl = new URL(req.url, 'http://127.0.0.1');
   const pathname = requestUrl.pathname;
 
   if (req.method === 'GET' && pathname === '/api/health') {
@@ -656,63 +560,7 @@ async function handler(req, res) {
     }
   }
 
-  if (req.method === 'GET') {
-    const filePath = resolvePublicFile(pathname);
-    if (filePath) {
-      return serveFile(res, filePath);
-    }
-  }
-
-  sendText(res, 404, 'Not found');
+  return sendJson(res, 404, { ok: false, error: 'Not found' });
 }
 
-async function writeRuntimeFile(port) {
-  const runtime = {
-    port,
-    url: `http://127.0.0.1:${port}`,
-    startedAt: new Date().toISOString(),
-    googleAppsScriptUrlConfigured: Boolean(GOOGLE_APPS_SCRIPT_URL),
-  };
-
-  await fs.writeFile(RUNTIME_FILE, `${JSON.stringify(runtime, null, 2)}\n`, 'utf8');
-}
-
-async function startServer() {
-  await ensureDataFiles();
-
-  const server = http.createServer((req, res) => {
-    handler(req, res).catch((error) => {
-      sendJson(res, 500, { ok: false, error: error.message || 'Server error' });
-    });
-  });
-
-  let lastError = null;
-
-  for (let port = PORT_START; port <= PORT_END; port += 1) {
-    try {
-      await new Promise((resolve, reject) => {
-        server.once('error', reject);
-        server.listen(port, '127.0.0.1', () => {
-          server.removeAllListeners('error');
-          resolve();
-        });
-      });
-
-      await writeRuntimeFile(port);
-      console.log(`Participant intake app running at http://127.0.0.1:${port}`);
-      return;
-    } catch (error) {
-      lastError = error;
-      if (server.listening) {
-        await new Promise((resolve) => server.close(resolve));
-      }
-    }
-  }
-
-  throw lastError || new Error('Unable to start server.');
-}
-
-startServer().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+module.exports = handler;

@@ -12,7 +12,6 @@ const message = document.getElementById('formMessage');
 const saveButton = document.getElementById('saveButton');
 const resetButton = document.getElementById('resetButton');
 
-const sourceInputs = Array.from(document.querySelectorAll('input[name="source"]'));
 const webinarTitle = document.getElementById('webinarTitle');
 const category = document.getElementById('category');
 const fullName = document.getElementById('fullName');
@@ -20,15 +19,15 @@ const email = document.getElementById('email');
 const notes = document.getElementById('notes');
 
 const fallbackWebinars = [
-  { value: '101-codex', label: '101-codex' },
-  { value: '102-claude', label: '102-claude' },
-  { value: '103-chagrpt', label: '103-chagrpt' },
+  { value: '201-codex     12 Jul 3pm', label: '201-codex     12 Jul 3pm' },
+  { value: '202-claude    13 Jul 5', label: '202-claude    13 Jul 5' },
+  { value: '303-chagrpt   21 Jul 5pm', label: '303-chagrpt   21 Jul 5pm' },
 ];
 
 let webinarDefaultValue = '';
 
 function currentSource() {
-  return sourceInputs.find((input) => input.checked)?.value || 'Codex';
+  return 'Codex';
 }
 
 function isMalaysia() {
@@ -59,38 +58,6 @@ function syncDynamicState() {
   if (identityGrid) {
     identityGrid.classList.toggle('single', malaysia);
   }
-}
-
-function formatNricPreview(value) {
-  const digits = value.replace(/\D/g, '').slice(0, 12);
-  if (digits.length === 12) {
-    return `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
-  }
-  return digits || 'NRIC';
-}
-
-function normalizeMalaysiaWhatsAppPreview(value) {
-  const digits = value.replace(/\D/g, '');
-  let normalized = digits;
-  if (normalized.startsWith('60')) {
-    normalized = normalized.slice(2);
-  }
-  if (normalized.startsWith('0')) {
-    normalized = normalized.slice(1);
-  }
-  if (!normalized) {
-    return '+60...';
-  }
-  return `+60${normalized}`;
-}
-
-function normalizeInternationalWhatsAppPreview(value) {
-  const cleaned = value.trim().replace(/[\s-]/g, '');
-  return cleaned || '+...';
-}
-
-function updatePreview() {
-  return;
 }
 
 function setMessage(text, type = '') {
@@ -139,18 +106,6 @@ async function loadWebinars() {
   } finally {
     saveButton.disabled = false;
   }
-}
-
-async function loadRecent() {
-  return;
-}
-
-function renderRecent(items) {
-  return items;
-}
-
-function escapeHtml(value) {
-  return String(value);
 }
 
 function validateClient(payload) {
@@ -221,8 +176,6 @@ async function submitForm(event) {
     country.value = 'Malaysia';
     webinarTitle.value = webinarDefaultValue;
     syncDynamicState();
-    updatePreview();
-    await loadRecent();
   } catch (error) {
     setMessage(error.message, 'error');
   } finally {
@@ -235,37 +188,14 @@ function handleReset() {
   country.value = 'Malaysia';
   webinarTitle.value = webinarDefaultValue;
   syncDynamicState();
-  updatePreview();
   setMessage('', '');
 }
 
-sourceInputs.forEach((input) => {
-  input.addEventListener('change', updatePreview);
-});
-
-[
-  webinarTitle,
-  country,
-  identityNumber,
-  whatsappNumber,
-  category,
-  fullName,
-  email,
-  notes,
-  passportCountry,
-].forEach((element) => {
-  element.addEventListener('input', updatePreview);
-  element.addEventListener('change', updatePreview);
-});
-
 country.addEventListener('change', () => {
   syncDynamicState();
-  updatePreview();
 });
 
 form.addEventListener('submit', submitForm);
 resetButton.addEventListener('click', handleReset);
 syncDynamicState();
-updatePreview();
 loadWebinars();
-loadRecent();
