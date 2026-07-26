@@ -13,8 +13,7 @@ const STORAGE_FILE = path.join(DATA_DIR, 'submissions.jsonl');
 const RUNTIME_FILE = path.join(DATA_DIR, 'runtime.json');
 const PORT_START = Number(process.env.PORT || 3000);
 const PORT_END = PORT_START + 25;
-const GOOGLE_APPS_SCRIPT_URL = (process.env.GOOGLE_APPS_SCRIPT_URL || '').trim();
-const GOOGLE_WEBINAR_SHEET_NAME = (process.env.GOOGLE_WEBINAR_SHEET_NAME || 'webinar').trim() || 'webinar';
+const ADMIN_TOKEN = (process.env.ADMIN_TOKEN || 'dev-admin').trim();
 const DEFAULT_WEBINARS = [
   { value: '201-codex     12 Jul 3pm', label: '201-codex     12 Jul 3pm' },
   { value: '202-claude    13 Jul 5', label: '202-claude    13 Jul 5' },
@@ -199,89 +198,7 @@ function parseWebinarRows(csvText) {
     .filter(Boolean);
 }
 
-function normalizeWebinarItem(item) {
-  if (!item) {
-    return null;
-  }
-
-  if (typeof item === 'string') {
-    const value = item.trim();
-    if (!value) {
-      return null;
-    }
-
-    return { value, label: value };
-  }
-
-  if (Array.isArray(item)) {
-    const value = String(item[0] || '').trim();
-    if (!value) {
-      return null;
-    }
-
-    const label = String(item[1] || value).trim() || value;
-    return { value, label };
-  }
-
-  if (typeof item === 'object') {
-    const value = String(item.value ?? item.title ?? item.code ?? item.slug ?? item.id ?? '').trim();
-    if (!value) {
-      return null;
-    }
-
-    const label = String(item.label ?? item.name ?? item.display ?? value).trim() || value;
-    return { value, label };
-  }
-
-  return null;
-}
-
-async function loadWebinarOptionsFromGoogleSheet() {
-  if (!GOOGLE_APPS_SCRIPT_URL) {
-    return [];
-  }
-
-  const endpoint = new URL(GOOGLE_APPS_SCRIPT_URL);
-  endpoint.searchParams.set('action', 'webinars');
-  endpoint.searchParams.set('sheet', GOOGLE_WEBINAR_SHEET_NAME);
-
-  const response = await fetch(endpoint);
-  const text = await response.text();
-
-  let payload = null;
-  try {
-    payload = JSON.parse(text);
-  } catch {
-    throw new Error('Respon Google Sheets tidak sah.');
-  }
-
-  if (!response.ok || payload?.ok === false) {
-    throw new Error(payload?.error || `Google Sheets fetch failed with status ${response.status}.`);
-  }
-
-  const rawItems = Array.isArray(payload.items)
-    ? payload.items
-    : Array.isArray(payload.webinars)
-      ? payload.webinars
-      : Array.isArray(payload.data)
-        ? payload.data
-        : [];
-
-  return rawItems.map(normalizeWebinarItem).filter(Boolean);
-}
-
 async function loadWebinarOptions() {
-  if (GOOGLE_APPS_SCRIPT_URL) {
-    try {
-      const remoteItems = await loadWebinarOptionsFromGoogleSheet();
-      if (remoteItems.length > 0) {
-        return remoteItems;
-      }
-    } catch {
-      // Fall back to local files when the Google Sheet is unavailable.
-    }
-  }
-
   try {
     const txtText = await fs.readFile(WEBINAR_TXT_FILE, 'utf8');
     const items = parseWebinarRows(txtText);
@@ -293,6 +210,40 @@ async function loadWebinarOptions() {
 
     throw new Error(`Gagal baca webinar.txt: ${error.message}`);
   }
+}
+
+function getAdminTokenFromRequest(req) {
+  const headerToken = String(req.headers['x-admin-token'] || '').trim();
+  if (headerToken) {
+    return headerToken;
+  }
+
+  const authHeader = String(req.headers.authorization || '').trim();
+  const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+  if (bearerMatch) {
+    return bearerMatch[1].trim();
+  }
+
+  return '';
+}
+
+function authorizeAdmin(req) {
+  if (!ADMIN_TOKEN) {
+    return {
+      status: 503,
+      error: 'ADMIN_TOKEN belum dikonfigurasi pada persekitaran produksi.',
+    };
+  }
+
+  const token = getAdminTokenFromRequest(req);
+  if (!token || token !== ADMIN_TOKEN) {
+    return {
+      status: 401,
+      error: 'Token admin tidak sah.',
+    };
+  }
+
+  return null;
 }
 
 function renderWebinarOptions(items) {
@@ -475,35 +426,11 @@ async function readLocalRecords(limit = 50) {
     })
     .filter(Boolean);
 
-  return rows.slice(Math.max(0, rows.length - limit));
-}
-
-async function forwardToGoogleSheet(record) {
-  if (!GOOGLE_APPS_SCRIPT_URL) {
-    return { ok: false, skipped: true };
-  }
-
-  const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(record),
-  });
-
-  const text = await response.text();
-  let payload = null;
-  try {
-    payload = JSON.parse(text);
-  } catch {
-    payload = { raw: text };
-  }
-
-  if (!response.ok) {
-    throw new Error(payload?.error || `Google Sheets sync failed with status ${response.status}.`);
-  }
-
-  return payload || { ok: true };
+  const total = rows.length;
+  return {
+    items: rows.slice(Math.max(0, total - limit)),
+    total,
+  };
 }
 
 function buildRecord(body, allowedTitles) {
@@ -607,6 +534,10 @@ async function handler(req, res) {
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
   const pathname = requestUrl.pathname;
 
+  if (req.method === 'GET' && (pathname === '/admin' || pathname === '/admin/')) {
+    return serveFile(res, path.join(PUBLIC_DIR, 'admin.html'));
+  }
+
   if (req.method === 'GET' && pathname === '/api/health') {
     return sendJson(res, 200, { ok: true });
   }
@@ -617,8 +548,24 @@ async function handler(req, res) {
   }
 
   if (req.method === 'GET' && pathname === '/api/submissions') {
-    const items = await readLocalRecords(100);
-    return sendJson(res, 200, { ok: true, count: items.length, items });
+    const authError = authorizeAdmin(req);
+    if (authError) {
+      return sendJson(res, authError.status, { ok: false, error: authError.error });
+    }
+
+    const requestedLimit = Number(requestUrl.searchParams.get('limit') || 100);
+    const limit = Number.isFinite(requestedLimit) && requestedLimit > 0
+      ? Math.min(Math.floor(requestedLimit), 1000)
+      : 100;
+
+    const { items, total } = await readLocalRecords(limit);
+    return sendJson(res, 200, {
+      ok: true,
+      count: Number.isFinite(Number(total)) ? Number(total) : items.length,
+      returnedCount: items.length,
+      source: 'local-file',
+      items,
+    });
   }
 
   if (req.method === 'POST' && pathname === '/api/save') {
@@ -630,23 +577,10 @@ async function handler(req, res) {
       await appendLocalRecord(record);
       await appendPesertaCsv(record);
 
-      let sheetSync = { ok: false, skipped: true };
-      if (GOOGLE_APPS_SCRIPT_URL) {
-        try {
-          sheetSync = await forwardToGoogleSheet(record);
-        } catch (syncError) {
-          sheetSync = {
-            ok: false,
-            error: syncError.message,
-          };
-        }
-      }
-
       return sendJson(res, 200, {
         ok: true,
         record,
         storage: 'local',
-        googleSheet: sheetSync,
       });
     } catch (error) {
       return sendJson(res, 400, {
@@ -671,7 +605,7 @@ async function writeRuntimeFile(port) {
     port,
     url: `http://127.0.0.1:${port}`,
     startedAt: new Date().toISOString(),
-    googleAppsScriptUrlConfigured: Boolean(GOOGLE_APPS_SCRIPT_URL),
+    storage: 'local',
   };
 
   await fs.writeFile(RUNTIME_FILE, `${JSON.stringify(runtime, null, 2)}\n`, 'utf8');
@@ -712,7 +646,12 @@ async function startServer() {
   throw lastError || new Error('Unable to start server.');
 }
 
-startServer().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+module.exports = handler;
+module.exports.startServer = startServer;
+
+if (require.main === module) {
+  startServer().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

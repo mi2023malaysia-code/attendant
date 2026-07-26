@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ms">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panel Admin - Participant Data</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/admin.js"></script>
+  </head>
+  <body>
+    <div class="backdrop backdrop-a"></div>
+    <div class="backdrop backdrop-b"></div>
+
+    <main class="shell admin-shell">
+      <section class="hero admin-hero">
+        <div>
+          <p class="panel-kicker">Protected access</p>
+          <h1>Panel peserta</h1>
+          <p class="lead">
+            Lihat, cari, dan eksport maklumat peserta yang telah dihantar ke sistem.
+          </p>
+        </div>
+
+        <div class="rule-grid admin-summary" id="summaryCards" aria-live="polite">
+          <article>
+            <span>Jumlah rekod</span>
+            <strong id="totalCount">0</strong>
+            <p class="help">Semua peserta yang dapat diakses oleh token admin.</p>
+          </article>
+          <article>
+            <span>Peserta terkini</span>
+            <strong id="latestCount">-</strong>
+            <p class="help">Tarikh dan masa pendaftaran terbaru.</p>
+          </article>
+          <article>
+            <span>Sumber data</span>
+            <strong id="sourceLabel">-</strong>
+            <p class="help">Semua rekod datang dari storan tempatan server.</p>
+          </article>
+          <article>
+            <span>Negara</span>
+            <strong id="countrySplit">-</strong>
+            <p class="help">Ringkasan Malaysia dan luar negara.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="workspace admin-workspace">
+        <div class="panel admin-auth-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Akses admin</h2>
+              <p class="help">Masukkan token admin untuk memuat senarai peserta.</p>
+            </div>
+            <span class="pill">Secure</span>
+          </div>
+
+          <form id="adminForm" class="form">
+            <div class="field">
+              <label for="adminToken">Admin token</label>
+              <input
+                id="adminToken"
+                name="adminToken"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Masukkan token admin"
+                required
+              />
+            </div>
+
+            <div class="actions">
+              <button id="loadButton" type="submit">Muat data</button>
+              <button id="refreshButton" type="button" class="secondary">Muat semula</button>
+              <button id="clearTokenButton" type="button" class="ghost">Padam token</button>
+            </div>
+
+            <p id="adminMessage" class="message" aria-live="polite"></p>
+            <p class="help">
+              Token hanya disimpan dalam sesi pelayar ini. Untuk keluar, tekan <strong>Padam token</strong>.
+            </p>
+          </form>
+        </div>
+
+        <div class="panel admin-table-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Rekod peserta</h2>
+              <p class="help" id="sourceHint">Belum ada data dimuat.</p>
+            </div>
+            <div class="admin-toolbar">
+              <input id="searchInput" type="search" placeholder="Cari nama, emel, webinar..." />
+              <button id="exportButton" type="button" class="secondary">CSV</button>
+            </div>
+          </div>
+
+          <div id="emptyState" class="empty-state">
+            Masukkan token admin untuk memuat senarai peserta.
+          </div>
+
+          <div id="tableWrap" class="table-wrap" hidden>
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Tarikh</th>
+                  <th>Sumber</th>
+                  <th>Webinar</th>
+                  <th>Nama</th>
+                  <th>Negara</th>
+                  <th>ID</th>
+                  <th>Emel</th>
+                  <th>WhatsApp</th>
+                  <th>Kategori</th>
+                  <th>Catatan</th>
+                </tr>
+              </thead>
+              <tbody id="submissionsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
