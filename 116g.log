@@ -1,0 +1,31 @@
+Conversation log — participant intake project
+Date: 2026-07-26
+Workspace: F:\codex\116
+
+1) User: "teruskan"
+   Assistant: Resumed the active task by inspecting the workspace, repo status, key files, logs, and test artifacts. Identified the app as a participant intake / webinar registration system with a public form, admin panel, and file-based storage. Cleaned up local runtime artifacts after smoke tests.
+
+2) User: "live sekarang"
+   Assistant: Used the Vercel deployment workflow to verify the project configuration, inspected the linked Vercel project (`attendant`), confirmed production endpoints, and deployed the app live. Verified that the live site and `/api/health` endpoint were reachable.
+
+3) User reported: "error [ENOENT: no such file or directory, open '/tmp/participant-intake/submissions.jsonl'"
+   Assistant: Diagnosed the production issue as missing runtime storage initialization on Vercel. Patched `server.js` so the temp storage files are created lazily and safely on every request, then redeployed and verified that `/api/save` now returns normal validation errors instead of ENOENT.
+
+4) User: "tambah 3 peserta kepada fil"
+   Assistant: Interpreted this as the participant data file and added 3 sample participant rows to `peserta.csv` in the expected CSV format.
+
+5) User: "tukar Admin token sebagai '12346'; tambah 3 peserta kepada fil lagu"
+   Assistant: Updated the admin token to `12346` in both the backend (`server.js`) and the admin UI (`public/admin.js`) so the token is consistent. Kept the 3 participant sample rows in `peserta.csv`, committed the changes, pushed them to `main`, and confirmed the production health endpoint was still OK.
+
+6) User: "simpanan kesemua pebualan dalam 116g.log"
+   Assistant: Wrote this chronological log into `116g.log` so the conversation and task outcomes are saved in the workspace.
+
+7) User: "sekarang tunjuk 'Berjaya memuat 0 rekod peserta.'; tambah 5 peserta lagi."
+   Assistant: Kept the runtime storage empty so the admin panel can legitimately show the zero-record success state when there are no submissions, and added 5 more sample participants to `peserta.csv`, bringing the sample CSV total to 8 rows of participant data.
+
+8) User: "tambah satu <tambah> button untuk tambah satu peserta"
+   Assistant: Added a new `Tambah` button to the public admin page. The button opens the existing participant registration form in a new tab so one participant can be added using the app's normal submission flow.
+
+Notes:
+- The string "fil lagu" was interpreted as the participant CSV/data file.
+- This log is a concise chronological record of the conversation and outcomes, not a verbatim raw transcript.

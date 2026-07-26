@@ -1,4 +1,5 @@
 const adminMessage = document.getElementById('adminMessage');
+const addParticipantButton = document.getElementById('addParticipantButton');
 const loadButton = document.getElementById('loadButton');
 const refreshButton = document.getElementById('refreshButton');
 const searchInput = document.getElementById('searchInput');
@@ -89,6 +90,10 @@ function matchesSearch(item, query) {
 function setMessage(text, type = '') {
   adminMessage.textContent = text;
   adminMessage.className = `message ${type}`.trim();
+}
+
+function openParticipantForm() {
+  window.open('/#participantForm', '_blank', 'noopener,noreferrer');
 }
 
 function makeBadge(text) {
@@ -244,6 +249,10 @@ async function loadSubmissions() {
 
 loadButton.addEventListener('click', async () => {
   await loadSubmissions();
+});
+
+addParticipantButton.addEventListener('click', () => {
+  openParticipantForm();
 });
 
 refreshButton.addEventListener('click', async () => {
