@@ -500,7 +500,7 @@ button[type='submit'],
   margin-top: 4px;
 }
 
-.admin-auth-panel,
+.admin-control-panel,
 .admin-table-panel {
   display: grid;
   gap: 16px;

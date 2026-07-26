@@ -1,9 +1,6 @@
-const adminForm = document.getElementById('adminForm');
-const adminToken = document.getElementById('adminToken');
 const adminMessage = document.getElementById('adminMessage');
 const loadButton = document.getElementById('loadButton');
 const refreshButton = document.getElementById('refreshButton');
-const clearTokenButton = document.getElementById('clearTokenButton');
 const searchInput = document.getElementById('searchInput');
 const exportButton = document.getElementById('exportButton');
 const submissionsBody = document.getElementById('submissionsBody');
@@ -14,9 +11,6 @@ const totalCount = document.getElementById('totalCount');
 const latestCount = document.getElementById('latestCount');
 const sourceLabel = document.getElementById('sourceLabel');
 const countrySplit = document.getElementById('countrySplit');
-
-const STORAGE_KEY = 'attendant.admin.token';
-const LOCAL_DEFAULT_TOKEN = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? '12346' : '';
 
 let allItems = [];
 let activeSource = 'local-file';
@@ -97,18 +91,6 @@ function setMessage(text, type = '') {
   adminMessage.className = `message ${type}`.trim();
 }
 
-function getToken() {
-  return safeText(adminToken.value);
-}
-
-function rememberToken(token) {
-  sessionStorage.setItem(STORAGE_KEY, token);
-}
-
-function forgetToken() {
-  sessionStorage.removeItem(STORAGE_KEY);
-}
-
 function makeBadge(text) {
   const badge = document.createElement('span');
   badge.className = 'badge';
@@ -149,7 +131,7 @@ function renderTable(items) {
     emptyState.hidden = false;
     emptyState.textContent = hasLoadedData
       ? 'Tiada rekod peserta ditemui.'
-      : 'Masukkan token admin untuk memuat senarai peserta.';
+      : 'Muat data peserta untuk memaparkan senarai.';
     sourceHint.textContent = hasLoadedData
       ? (totalRecords > 0 ? `Tiada padanan daripada ${totalRecords} rekod.` : 'Tiada data untuk dipaparkan.')
       : 'Belum ada data dimuat.';
@@ -226,32 +208,19 @@ function downloadCsv(rows) {
 }
 
 async function loadSubmissions() {
-  const token = getToken();
-  if (!token) {
-    setMessage('Masukkan token admin terlebih dahulu.', 'error');
-    adminToken.focus();
-    return;
-  }
-
   loadButton.disabled = true;
   refreshButton.disabled = true;
   exportButton.disabled = true;
   setMessage('Memuat data peserta...', '');
 
   try {
-    const response = await fetch('/api/submissions?limit=1000', {
-      headers: {
-        'X-Admin-Token': token,
-      },
-      cache: 'no-store',
-    });
+    const response = await fetch('/api/submissions?limit=1000', { cache: 'no-store' });
 
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.ok) {
       throw new Error(data.error || 'Gagal memuat data peserta.');
     }
 
-    rememberToken(token);
     activeSource = data.source || 'local-file';
     allItems = sortByCreatedAtDesc(
       Array.isArray(data.items) ? data.items.map(normalizeRecord) : []
@@ -273,38 +242,12 @@ async function loadSubmissions() {
   }
 }
 
-function restoreToken() {
-  const savedToken = sessionStorage.getItem(STORAGE_KEY);
-  if (savedToken) {
-    adminToken.value = savedToken;
-    return;
-  }
-
-  if (LOCAL_DEFAULT_TOKEN) {
-    adminToken.value = LOCAL_DEFAULT_TOKEN;
-    adminToken.placeholder = '12346';
-  }
-}
-
-adminForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
+loadButton.addEventListener('click', async () => {
   await loadSubmissions();
 });
 
 refreshButton.addEventListener('click', async () => {
   await loadSubmissions();
-});
-
-clearTokenButton.addEventListener('click', () => {
-  forgetToken();
-  adminToken.value = LOCAL_DEFAULT_TOKEN;
-  allItems = [];
-  activeSource = 'local-file';
-  totalRecords = 0;
-  hasLoadedData = false;
-  renderView();
-  setMessage('Token admin dipadam.', '');
-  adminToken.focus();
 });
 
 searchInput.addEventListener('input', () => {
@@ -317,9 +260,5 @@ exportButton.addEventListener('click', () => {
   downloadCsv(rows);
 });
 
-restoreToken();
 renderView();
-
-if (getToken()) {
-  loadSubmissions();
-}
+loadSubmissions();

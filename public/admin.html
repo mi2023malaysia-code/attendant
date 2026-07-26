@@ -14,7 +14,7 @@
     <main class="shell admin-shell">
       <section class="hero admin-hero">
         <div>
-          <p class="panel-kicker">Protected access</p>
+          <p class="panel-kicker">Public access</p>
           <h1>Panel peserta</h1>
           <p class="lead">
             Lihat, cari, dan eksport maklumat peserta yang telah dihantar ke sistem.
@@ -25,7 +25,7 @@
           <article>
             <span>Jumlah rekod</span>
             <strong id="totalCount">0</strong>
-            <p class="help">Semua peserta yang dapat diakses oleh token admin.</p>
+            <p class="help">Semua peserta yang disimpan dalam storan tempatan server.</p>
           </article>
           <article>
             <span>Peserta terkini</span>
@@ -46,39 +46,22 @@
       </section>
 
       <section class="workspace admin-workspace">
-        <div class="panel admin-auth-panel">
+        <div class="panel admin-control-panel">
           <div class="panel-head">
             <div>
-              <h2>Akses admin</h2>
-              <p class="help">Masukkan token admin untuk memuat senarai peserta.</p>
+              <h2>Kawalan data</h2>
+              <p class="help">Data dimuat terus. Gunakan carian atau eksport bila perlu.</p>
             </div>
-            <span class="pill">Secure</span>
+            <span class="pill">Public</span>
           </div>
 
-          <form id="adminForm" class="form">
-            <div class="field">
-              <label for="adminToken">Admin token</label>
-              <input
-                id="adminToken"
-                name="adminToken"
-                type="password"
-                autocomplete="current-password"
-                placeholder="Masukkan token admin"
-                required
-              />
-            </div>
+          <div class="actions">
+            <button id="loadButton" type="button">Muat data</button>
+            <button id="refreshButton" type="button" class="secondary">Muat semula</button>
+            <button id="exportButton" type="button" class="ghost">CSV</button>
+          </div>
 
-            <div class="actions">
-              <button id="loadButton" type="submit">Muat data</button>
-              <button id="refreshButton" type="button" class="secondary">Muat semula</button>
-              <button id="clearTokenButton" type="button" class="ghost">Padam token</button>
-            </div>
-
-            <p id="adminMessage" class="message" aria-live="polite"></p>
-            <p class="help">
-              Token hanya disimpan dalam sesi pelayar ini. Untuk keluar, tekan <strong>Padam token</strong>.
-            </p>
-          </form>
+          <p id="adminMessage" class="message" aria-live="polite"></p>
         </div>
 
         <div class="panel admin-table-panel">
@@ -89,12 +72,11 @@
             </div>
             <div class="admin-toolbar">
               <input id="searchInput" type="search" placeholder="Cari nama, emel, webinar..." />
-              <button id="exportButton" type="button" class="secondary">CSV</button>
             </div>
           </div>
 
           <div id="emptyState" class="empty-state">
-            Masukkan token admin untuk memuat senarai peserta.
+            Muat data peserta untuk memaparkan senarai.
           </div>
 
           <div id="tableWrap" class="table-wrap" hidden>

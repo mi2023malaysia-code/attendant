@@ -13,7 +13,6 @@ const STORAGE_FILE = path.join(DATA_DIR, 'submissions.jsonl');
 const RUNTIME_FILE = path.join(DATA_DIR, 'runtime.json');
 const PORT_START = Number(process.env.PORT || 3000);
 const PORT_END = PORT_START + 25;
-const ADMIN_TOKEN = '12346';
 const DEFAULT_WEBINARS = [
   { value: '201-codex     12 Jul 3pm', label: '201-codex     12 Jul 3pm' },
   { value: '202-claude    13 Jul 5', label: '202-claude    13 Jul 5' },
@@ -223,40 +222,6 @@ async function loadWebinarOptions() {
 
     throw new Error(`Gagal baca webinar.txt: ${error.message}`);
   }
-}
-
-function getAdminTokenFromRequest(req) {
-  const headerToken = String(req.headers['x-admin-token'] || '').trim();
-  if (headerToken) {
-    return headerToken;
-  }
-
-  const authHeader = String(req.headers.authorization || '').trim();
-  const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-  if (bearerMatch) {
-    return bearerMatch[1].trim();
-  }
-
-  return '';
-}
-
-function authorizeAdmin(req) {
-  if (!ADMIN_TOKEN) {
-    return {
-      status: 503,
-      error: 'ADMIN_TOKEN belum dikonfigurasi pada persekitaran produksi.',
-    };
-  }
-
-  const token = getAdminTokenFromRequest(req);
-  if (!token || token !== ADMIN_TOKEN) {
-    return {
-      status: 401,
-      error: 'Token admin tidak sah.',
-    };
-  }
-
-  return null;
 }
 
 function renderWebinarOptions(items) {
@@ -566,11 +531,6 @@ async function handler(req, res) {
   }
 
   if (req.method === 'GET' && pathname === '/api/submissions') {
-    const authError = authorizeAdmin(req);
-    if (authError) {
-      return sendJson(res, authError.status, { ok: false, error: authError.error });
-    }
-
     const requestedLimit = Number(requestUrl.searchParams.get('limit') || 100);
     const limit = Number.isFinite(requestedLimit) && requestedLimit > 0
       ? Math.min(Math.floor(requestedLimit), 1000)
