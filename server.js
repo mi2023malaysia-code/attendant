@@ -13,7 +13,7 @@ const STORAGE_FILE = path.join(DATA_DIR, 'submissions.jsonl');
 const RUNTIME_FILE = path.join(DATA_DIR, 'runtime.json');
 const PORT_START = Number(process.env.PORT || 3000);
 const PORT_END = PORT_START + 25;
-const ADMIN_TOKEN = (process.env.ADMIN_TOKEN || 'dev-admin').trim();
+const ADMIN_TOKEN = '12346';
 const DEFAULT_WEBINARS = [
   { value: '201-codex     12 Jul 3pm', label: '201-codex     12 Jul 3pm' },
   { value: '202-claude    13 Jul 5', label: '202-claude    13 Jul 5' },

@@ -16,7 +16,7 @@ const sourceLabel = document.getElementById('sourceLabel');
 const countrySplit = document.getElementById('countrySplit');
 
 const STORAGE_KEY = 'attendant.admin.token';
-const LOCAL_DEFAULT_TOKEN = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'dev-admin' : '';
+const LOCAL_DEFAULT_TOKEN = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? '12346' : '';
 
 let allItems = [];
 let activeSource = 'local-file';
@@ -282,7 +282,7 @@ function restoreToken() {
 
   if (LOCAL_DEFAULT_TOKEN) {
     adminToken.value = LOCAL_DEFAULT_TOKEN;
-    adminToken.placeholder = 'dev-admin';
+    adminToken.placeholder = '12346';
   }
 }
 
