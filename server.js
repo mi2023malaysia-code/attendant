@@ -20,6 +20,8 @@ const DEFAULT_WEBINARS = [
   { value: '303-chagrpt   21 Jul 5pm', label: '303-chagrpt   21 Jul 5pm' },
 ];
 
+let dataFilesReadyPromise = null;
+
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -85,6 +87,17 @@ async function ensureDataFiles() {
   } catch {
     await fs.writeFile(PESERTA_CSV_FILE, `${PESERTA_CSV_HEADER}\n`, 'utf8');
   }
+}
+
+async function ensureDataFilesReady() {
+  if (!dataFilesReadyPromise) {
+    dataFilesReadyPromise = ensureDataFiles().catch((error) => {
+      dataFilesReadyPromise = null;
+      throw error;
+    });
+  }
+
+  return dataFilesReadyPromise;
 }
 
 function sendJson(res, statusCode, payload) {
@@ -402,16 +415,19 @@ async function readJsonBody(req) {
 }
 
 async function appendLocalRecord(record) {
+  await ensureDataFilesReady();
   const line = `${JSON.stringify(record)}\n`;
   await fs.appendFile(STORAGE_FILE, line, 'utf8');
 }
 
 async function appendPesertaCsv(record) {
+  await ensureDataFilesReady();
   const line = `${serializePesertaCsvRow(record)}\n`;
   await fs.appendFile(PESERTA_CSV_FILE, line, 'utf8');
 }
 
 async function readLocalRecords(limit = 50) {
+  await ensureDataFilesReady();
   const text = await fs.readFile(STORAGE_FILE, 'utf8');
   const rows = text
     .split('\n')
@@ -531,6 +547,8 @@ function resolvePublicFile(urlPath) {
 }
 
 async function handler(req, res) {
+  await ensureDataFilesReady();
+
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
   const pathname = requestUrl.pathname;
 
@@ -612,7 +630,7 @@ async function writeRuntimeFile(port) {
 }
 
 async function startServer() {
-  await ensureDataFiles();
+  await ensureDataFilesReady();
 
   const server = http.createServer((req, res) => {
     handler(req, res).catch((error) => {
