@@ -11,7 +11,8 @@ const latestCount = document.getElementById('latestCount');
 const nameFilterInput = document.getElementById('nameFilterInput');
 const icFilterInput = document.getElementById('icFilterInput');
 const courseFilterInput = document.getElementById('courseFilterInput');
-const dateFilterInput = document.getElementById('dateFilterInput');
+const dateFromFilterInput = document.getElementById('dateFromFilterInput');
+const dateToFilterInput = document.getElementById('dateToFilterInput');
 const sortSelect = document.getElementById('sortSelect');
 const clearFiltersButton = document.getElementById('clearFiltersButton');
 
@@ -137,16 +138,30 @@ function compareDateValues(left, right, direction = 'desc') {
     : rightValue - leftValue;
 }
 
+function normalizeDateRange(fromValue, toValue) {
+  const from = safeText(fromValue);
+  const to = safeText(toValue);
+
+  if (from && to && from > to) {
+    return { from: to, to: from };
+  }
+
+  return { from, to };
+}
+
 function getFilterState() {
   return {
     name: normalizeFilterText(nameFilterInput.value),
     ic: normalizeFilterText(icFilterInput.value),
     course: normalizeFilterText(courseFilterInput.value),
-    date: safeText(dateFilterInput.value),
+    dateFrom: safeText(dateFromFilterInput.value),
+    dateTo: safeText(dateToFilterInput.value),
     sort: safeText(sortSelect.value) || 'date-desc',
     rawName: safeText(nameFilterInput.value),
     rawIc: safeText(icFilterInput.value),
     rawCourse: safeText(courseFilterInput.value),
+    rawDateFrom: safeText(dateFromFilterInput.value),
+    rawDateTo: safeText(dateToFilterInput.value),
   };
 }
 
@@ -163,8 +178,21 @@ function matchesFilters(item, filters) {
     return false;
   }
 
-  if (filters.date && toDateInputValue(item.createdAt) !== filters.date) {
-    return false;
+  if (filters.dateFrom || filters.dateTo) {
+    const createdDate = toDateInputValue(item.createdAt);
+    if (!createdDate) {
+      return false;
+    }
+
+    const { from, to } = normalizeDateRange(filters.dateFrom, filters.dateTo);
+
+    if (from && createdDate < from) {
+      return false;
+    }
+
+    if (to && createdDate > to) {
+      return false;
+    }
   }
 
   return true;
@@ -212,8 +240,16 @@ function describeActiveFilters(filters) {
     parts.push(`course "${filters.rawCourse}"`);
   }
 
-  if (filters.date) {
-    parts.push(`tarikh ${filters.date}`);
+  if (filters.rawDateFrom || filters.rawDateTo) {
+    const { from, to } = normalizeDateRange(filters.rawDateFrom, filters.rawDateTo);
+
+    if (from && to) {
+      parts.push(`tarikh ${from} hingga ${to}`);
+    } else if (from) {
+      parts.push(`tarikh dari ${from}`);
+    } else if (to) {
+      parts.push(`tarikh hingga ${to}`);
+    }
   }
 
   return parts.join(', ');
@@ -781,7 +817,8 @@ document.addEventListener('keydown', (event) => {
   nameFilterInput,
   icFilterInput,
   courseFilterInput,
-  dateFilterInput,
+  dateFromFilterInput,
+  dateToFilterInput,
 ].forEach((input) => {
   input.addEventListener('input', () => {
     renderView();
@@ -796,7 +833,8 @@ clearFiltersButton.addEventListener('click', () => {
   nameFilterInput.value = '';
   icFilterInput.value = '';
   courseFilterInput.value = '';
-  dateFilterInput.value = '';
+  dateFromFilterInput.value = '';
+  dateToFilterInput.value = '';
   sortSelect.value = 'date-desc';
   renderView();
 });

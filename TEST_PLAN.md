@@ -8,7 +8,7 @@ Project: `F:\codex\116`
 
 Verify the new admin changes:
 
-- filter records by name, IC, course/webinar, and date
+- filter records by name, IC, course/webinar, and date range
 - sort by name, course, and date
 - delete a single row or the current filtered result set
 - keep CSV export, reload, and public form behavior intact
@@ -27,7 +27,7 @@ Verify the new admin changes:
   - `Muat semula`
   - `CSV`
   - `Padam ditapis`
-  - filters for `Nama`, `IC`, `Course / webinar`, and date
+  - filters for `Nama`, `IC`, `Course / webinar`, and date range
   - sort select and `Reset`
 - CSV export from the currently visible filtered and sorted rows
 - Delete behavior for one row and for the filtered set
@@ -65,7 +65,7 @@ Verify the new admin changes:
 |---|---|---|
 | UI-01 | Open `/admin` | Page loads, summary renders, and the table area is present |
 | UI-02 | Inspect visible admin actions | Only `Muat semula`, `CSV`, and `Padam ditapis` are shown; no visible `Tambah` or `Muat data` button |
-| UI-03 | Inspect the filter toolbar | Fields for `Nama`, `IC`, `Course / webinar`, date, sort select, and `Reset` are present |
+| UI-03 | Inspect the filter toolbar | Fields for `Nama`, `IC`, `Course / webinar`, `Tarikh dari`, `Tarikh hingga`, sort select, and `Reset` are present |
 | UI-04 | Inspect table headers | `Tindakan` column exists |
 | API-01 | `GET /api/submissions?limit=1` | `200 OK` and participant data is returned |
 | API-02 | `GET /api/webinars` | `200 OK` and webinar options are returned |
@@ -78,7 +78,7 @@ Verify the new admin changes:
 | FIL-01 | Name filter | Enter a partial name and only matching rows remain |
 | FIL-02 | IC filter | Enter a partial IC and only matching rows remain |
 | FIL-03 | Course filter | Enter part of the webinar title and only matching rows remain |
-| FIL-04 | Date filter | Pick a date and only rows from that date remain |
+| FIL-04 | Date range | Pick a `from` and `to` date and only rows inside the inclusive range remain |
 | FIL-05 | Combined filters | Apply 2 or more filters and the table shows the intersection only |
 | FIL-06 | Reset | Click `Reset` and all filters clear; default sort returns to newest first |
 | FIL-07 | No results | Use a filter with no match and the empty state updates correctly |
@@ -120,7 +120,7 @@ Verify the new admin changes:
 The change is ready when all of the following are true:
 
 - The admin page exposes the new filter, sort, and delete controls
-- Filters work by name, IC, course, and date
+- Filters work by name, IC, course, and date range
 - Sort options change ordering as expected
 - Row delete and filtered delete both work with confirmation
 - CSV export matches the visible table state
@@ -141,5 +141,6 @@ The change is ready when all of the following are true:
 
 - `Course / webinar` in the UI maps to the webinar title field.
 - Name, IC, and course filters are partial-match and case-insensitive.
+- Date range filters are inclusive; each bound can be used on its own.
 - Delete actions should be tested on disposable rows first when using Supabase.
 - If local fallback storage is active, confirm the local data file updates after delete as well.

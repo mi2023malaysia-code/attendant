@@ -64,7 +64,11 @@
               <input id="nameFilterInput" type="search" placeholder="Nama" aria-label="Filter by name" />
               <input id="icFilterInput" type="search" placeholder="IC" aria-label="Filter by IC" />
               <input id="courseFilterInput" type="search" placeholder="Course / webinar" aria-label="Filter by course" />
-              <input id="dateFilterInput" type="date" aria-label="Filter by date" />
+              <div class="date-range" role="group" aria-label="Filter by date range">
+                <input id="dateFromFilterInput" type="date" aria-label="Filter by start date" />
+                <span class="range-separator" aria-hidden="true">hingga</span>
+                <input id="dateToFilterInput" type="date" aria-label="Filter by end date" />
+              </div>
               <select id="sortSelect" aria-label="Sort records">
                 <option value="date-desc" selected>Tarikh terbaru</option>
                 <option value="name-asc">Nama A-Z</option>
