@@ -27,6 +27,8 @@ Verify the new admin changes:
   - `Muat semula`
   - `CSV`
   - `Padam ditapis`
+  - separate filter section
+  - separate view section
   - filters for `Nama`, `IC`, `Course / webinar`, and date range
   - sort select and `Reset`
 - CSV export from the currently visible filtered and sorted rows
@@ -63,10 +65,11 @@ Verify the new admin changes:
 
 | ID | Check | Expected result |
 |---|---|---|
-| UI-01 | Open `/admin` | Page loads, summary renders, and the table area is present |
+| UI-01 | Open `/admin` | Page loads, summary renders, and both filter and view sections are present |
 | UI-02 | Inspect visible admin actions | Only `Muat semula`, `CSV`, and `Padam ditapis` are shown; no visible `Tambah` or `Muat data` button |
-| UI-03 | Inspect the filter toolbar | Fields for `Nama`, `IC`, `Course / webinar`, `Tarikh dari`, `Tarikh hingga`, sort select, and `Reset` are present |
-| UI-04 | Inspect table headers | `Tindakan` column exists |
+| UI-03 | Inspect the filter section | Fields for `Nama`, `IC`, `Course / webinar`, `Tarikh dari`, `Tarikh hingga`, sort by label, and `Reset` are present |
+| UI-04 | Inspect the view section | The view section fills the available page height and shows vertical and horizontal scrollbars inside the panel |
+| UI-05 | Inspect table headers | `Tindakan` column exists |
 | API-01 | `GET /api/submissions?limit=1` | `200 OK` and participant data is returned |
 | API-02 | `GET /api/webinars` | `200 OK` and webinar options are returned |
 | API-03 | `GET /api/categories` | `200 OK` and category options are returned |
@@ -120,12 +123,14 @@ Verify the new admin changes:
 The change is ready when all of the following are true:
 
 - The admin page exposes the new filter, sort, and delete controls
+- The admin page exposes separate filter and view sections
 - Filters work by name, IC, course, and date range
 - Sort options change ordering as expected
 - Row delete and filtered delete both work with confirmation
 - CSV export matches the visible table state
 - `/api/delete` returns valid success and validation responses
 - Public form and read APIs still work
+- The view section fills the available page height and scrolls both vertically and horizontally
 - No visible regression brings back the removed admin add controls
 
 ## Evidence to capture
@@ -142,5 +147,6 @@ The change is ready when all of the following are true:
 - `Course / webinar` in the UI maps to the webinar title field.
 - Name, IC, and course filters are partial-match and case-insensitive.
 - Date range filters are inclusive; each bound can be used on its own.
+- The view section is intended to be the scrollable record area, not the filter toolbar.
 - Delete actions should be tested on disposable rows first when using Supabase.
 - If local fallback storage is active, confirm the local data file updates after delete as well.

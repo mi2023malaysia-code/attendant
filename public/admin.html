@@ -54,57 +54,71 @@
           <p id="adminMessage" class="message" aria-live="polite"></p>
         </div>
 
-        <div class="panel admin-table-panel">
+        <div class="panel admin-filter-panel">
           <div class="panel-head">
             <div>
-              <h2>Rekod peserta</h2>
+              <h2>Penapis data</h2>
+              <p class="help">Gunakan penapis untuk mengecilkan senarai sebelum melihat rekod.</p>
+            </div>
+            <span class="pill">Filter</span>
+          </div>
+
+          <div class="admin-toolbar">
+            <input id="nameFilterInput" type="search" placeholder="Nama" aria-label="Filter by name" />
+            <input id="icFilterInput" type="search" placeholder="IC" aria-label="Filter by IC" />
+            <input id="courseFilterInput" type="search" placeholder="Course / webinar" aria-label="Filter by course" />
+            <div class="date-range" role="group" aria-label="Filter by date range">
+              <input id="dateFromFilterInput" type="date" aria-label="Filter by start date" />
+              <span class="range-separator" aria-hidden="true">hingga</span>
+              <input id="dateToFilterInput" type="date" aria-label="Filter by end date" />
+            </div>
+            <div class="sort-control">
+              <label for="sortSelect">Sort by</label>
+              <select id="sortSelect">
+                <option value="date-desc" selected>Tarikh terbaru</option>
+                <option value="name-asc">Nama A-Z</option>
+                <option value="course-asc">Course A-Z</option>
+                <option value="date-asc">Tarikh terawal</option>
+              </select>
+            </div>
+            <button id="clearFiltersButton" type="button" class="secondary">Reset</button>
+          </div>
+        </div>
+
+        <div class="panel admin-view-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Paparan peserta</h2>
               <p class="help" id="sourceHint">Belum ada data dimuat.</p>
             </div>
-            <div class="admin-toolbar">
-              <input id="nameFilterInput" type="search" placeholder="Nama" aria-label="Filter by name" />
-              <input id="icFilterInput" type="search" placeholder="IC" aria-label="Filter by IC" />
-              <input id="courseFilterInput" type="search" placeholder="Course / webinar" aria-label="Filter by course" />
-              <div class="date-range" role="group" aria-label="Filter by date range">
-                <input id="dateFromFilterInput" type="date" aria-label="Filter by start date" />
-                <span class="range-separator" aria-hidden="true">hingga</span>
-                <input id="dateToFilterInput" type="date" aria-label="Filter by end date" />
-              </div>
-              <div class="sort-control">
-                <label for="sortSelect">Sort by</label>
-                <select id="sortSelect">
-                  <option value="date-desc" selected>Tarikh terbaru</option>
-                  <option value="name-asc">Nama A-Z</option>
-                  <option value="course-asc">Course A-Z</option>
-                  <option value="date-asc">Tarikh terawal</option>
-                </select>
-              </div>
-              <button id="clearFiltersButton" type="button" class="secondary">Reset</button>
+            <span class="pill">View</span>
+          </div>
+
+          <div class="admin-view-body">
+            <div id="emptyState" class="empty-state">
+              Senarai peserta belum dipaparkan.
             </div>
-          </div>
 
-          <div id="emptyState" class="empty-state">
-            Senarai peserta belum dipaparkan.
-          </div>
-
-          <div id="tableWrap" class="table-wrap" hidden>
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Tarikh</th>
-                  <th>Sumber</th>
-                  <th>Webinar</th>
-                  <th>Nama</th>
-                  <th>Negara</th>
-                  <th>ID</th>
-                  <th>Emel</th>
-                  <th>WhatsApp</th>
-                  <th>Kategori</th>
-                  <th>Catatan</th>
-                  <th>Tindakan</th>
-                </tr>
-              </thead>
-              <tbody id="submissionsBody"></tbody>
-            </table>
+            <div id="tableWrap" class="table-wrap" hidden>
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Tarikh</th>
+                    <th>Sumber</th>
+                    <th>Webinar</th>
+                    <th>Nama</th>
+                    <th>Negara</th>
+                    <th>ID</th>
+                    <th>Emel</th>
+                    <th>WhatsApp</th>
+                    <th>Kategori</th>
+                    <th>Catatan</th>
+                    <th>Tindakan</th>
+                  </tr>
+                </thead>
+                <tbody id="submissionsBody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
