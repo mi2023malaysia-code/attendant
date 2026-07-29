@@ -17,7 +17,7 @@
           <p class="panel-kicker">Public access</p>
           <h1>Panel peserta</h1>
           <p class="lead">
-            Lihat, cari, dan eksport maklumat peserta yang telah dihantar ke sistem.
+            Lihat, cari, tambah, dan eksport maklumat peserta yang telah dihantar ke sistem.
           </p>
         </div>
 
@@ -25,22 +25,12 @@
           <article>
             <span>Jumlah rekod</span>
             <strong id="totalCount">0</strong>
-            <p class="help">Semua peserta yang disimpan dalam storan tempatan server.</p>
+            <p class="help">Semua peserta yang disimpan dalam sumber data aktif server.</p>
           </article>
           <article>
             <span>Peserta terkini</span>
             <strong id="latestCount">-</strong>
             <p class="help">Tarikh dan masa pendaftaran terbaru.</p>
-          </article>
-          <article>
-            <span>Sumber data</span>
-            <strong id="sourceLabel">-</strong>
-            <p class="help">Semua rekod datang dari storan tempatan server.</p>
-          </article>
-          <article>
-            <span>Negara</span>
-            <strong id="countrySplit">-</strong>
-            <p class="help">Ringkasan Malaysia dan luar negara.</p>
           </article>
         </div>
       </section>
@@ -56,10 +46,9 @@
           </div>
 
           <div class="actions">
-            <button id="addParticipantButton" type="button" class="primary">Tambah</button>
-            <button id="loadButton" type="button">Muat data</button>
             <button id="refreshButton" type="button" class="secondary">Muat semula</button>
             <button id="exportButton" type="button" class="ghost">CSV</button>
+            <button id="deleteFilteredButton" type="button" class="danger">Padam ditapis</button>
           </div>
 
           <p id="adminMessage" class="message" aria-live="polite"></p>
@@ -72,12 +61,22 @@
               <p class="help" id="sourceHint">Belum ada data dimuat.</p>
             </div>
             <div class="admin-toolbar">
-              <input id="searchInput" type="search" placeholder="Cari nama, emel, webinar..." />
+              <input id="nameFilterInput" type="search" placeholder="Nama" aria-label="Filter by name" />
+              <input id="icFilterInput" type="search" placeholder="IC" aria-label="Filter by IC" />
+              <input id="courseFilterInput" type="search" placeholder="Course / webinar" aria-label="Filter by course" />
+              <input id="dateFilterInput" type="date" aria-label="Filter by date" />
+              <select id="sortSelect" aria-label="Sort records">
+                <option value="date-desc" selected>Tarikh terbaru</option>
+                <option value="name-asc">Nama A-Z</option>
+                <option value="course-asc">Course A-Z</option>
+                <option value="date-asc">Tarikh terawal</option>
+              </select>
+              <button id="clearFiltersButton" type="button" class="secondary">Reset</button>
             </div>
           </div>
 
           <div id="emptyState" class="empty-state">
-            Muat data peserta untuk memaparkan senarai.
+            Senarai peserta belum dipaparkan.
           </div>
 
           <div id="tableWrap" class="table-wrap" hidden>
@@ -94,6 +93,7 @@
                   <th>WhatsApp</th>
                   <th>Kategori</th>
                   <th>Catatan</th>
+                  <th>Tindakan</th>
                 </tr>
               </thead>
               <tbody id="submissionsBody"></tbody>
@@ -102,5 +102,93 @@
         </div>
       </section>
     </main>
+
+    <div id="quickAddModal" class="modal" hidden>
+      <div id="quickAddBackdrop" class="modal-backdrop" aria-hidden="true"></div>
+
+      <section class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="quickAddTitle">
+        <div class="panel-head">
+          <div>
+            <p class="panel-kicker">Quick add</p>
+            <h2 id="quickAddTitle">Peserta baharu</h2>
+            <p class="help">Isi borang ini untuk simpan terus ke <code>peserta.csv</code>.</p>
+          </div>
+          <button id="quickAddCloseButton" type="button" class="ghost">Tutup</button>
+        </div>
+
+        <form id="quickAddForm" class="form quick-add-form">
+          <input id="quickAddSource" name="source" type="hidden" value="Codex" />
+
+          <div class="field">
+            <label for="quickAddWebinarTitle">Tajuk webinar - Webinar Title</label>
+            <select id="quickAddWebinarTitle" name="webinarTitle" required></select>
+          </div>
+
+          <div class="field">
+            <label for="quickAddFullName">Nama penuh - Full Name</label>
+            <input id="quickAddFullName" name="fullName" type="text" placeholder="Contoh: Ahmad Faris bin Ali" autocomplete="name" required />
+          </div>
+
+          <div class="field">
+            <label for="quickAddCountry">Negara - Country</label>
+            <select id="quickAddCountry" name="country" required>
+              <option value="Malaysia">Malaysia - Malaysia</option>
+              <option value="Other">Lain negara - Other country</option>
+            </select>
+          </div>
+
+          <div class="grid-2" id="quickAddIdentityGrid">
+            <div class="field">
+              <label id="quickAddIdentityLabel" for="quickAddIdentityNumber">No. Kad Pengenalan - Identity Card No.</label>
+              <p class="help" id="quickAddIdentityHelp">(Rujuk Kepada Pendaftaran NTW - Refer to NTW registration)</p>
+              <input
+                id="quickAddIdentityNumber"
+                name="identityNumber"
+                type="text"
+                inputmode="numeric"
+                placeholder="900101011234"
+                autocomplete="off"
+                required
+              />
+            </div>
+
+            <div class="field" id="quickAddPassportGroup" hidden>
+              <label for="quickAddPassportCountry">Negara pasport - Passport Country</label>
+              <input id="quickAddPassportCountry" name="passportCountry" type="text" placeholder="Contoh: Singapore" autocomplete="country-name" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="quickAddEmail">Emel - Email</label>
+            <input id="quickAddEmail" name="email" type="email" placeholder="nama@domain.com" autocomplete="email" required />
+          </div>
+
+          <div class="field">
+            <label for="quickAddWhatsappNumber">Nombor WhatsApp - WhatsApp Number</label>
+            <input id="quickAddWhatsappNumber" name="whatsappNumber" type="text" placeholder="+60123456789" autocomplete="tel" required />
+            <p class="help" id="quickAddWhatsappHelp">Malaysia - Malaysia: +60xxxxxxxxx. Sistem akan menormalkan nombor tempatan kepada format ini / The system will normalise local numbers to this format.</p>
+          </div>
+
+          <div class="field">
+            <label for="quickAddCategory">Kategori - Category</label>
+            <select id="quickAddCategory" name="category" required>
+              <option value="" selected disabled>Memuat kategori dari Supabase...</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="quickAddNotes">Catatan - Notes</label>
+            <textarea id="quickAddNotes" name="notes" rows="3"></textarea>
+          </div>
+
+          <div class="actions">
+            <button id="quickAddSubmitButton" type="submit" class="primary">Simpan ke CSV</button>
+            <button id="quickAddResetButton" type="button" class="secondary">Kosongkan</button>
+          </div>
+
+          <p id="quickAddMessage" class="message" aria-live="polite"></p>
+        </form>
+      </section>
+    </div>
   </body>
 </html>

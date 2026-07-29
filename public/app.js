@@ -18,13 +18,14 @@ const fullName = document.getElementById('fullName');
 const email = document.getElementById('email');
 const notes = document.getElementById('notes');
 
-const fallbackWebinars = [
-  { value: '201-codex     12 Jul 3pm', label: '201-codex     12 Jul 3pm' },
-  { value: '202-claude    13 Jul 5', label: '202-claude    13 Jul 5' },
-  { value: '303-chagrpt   21 Jul 5pm', label: '303-chagrpt   21 Jul 5pm' },
-];
-
 let webinarDefaultValue = '';
+let categoryDefaultValue = '';
+let webinarsLoaded = false;
+let categoriesLoaded = false;
+
+function updateSaveButtonState() {
+  saveButton.disabled = !(webinarsLoaded && categoriesLoaded);
+}
 
 function currentSource() {
   return 'Codex';
@@ -66,10 +67,22 @@ function setMessage(text, type = '') {
 }
 
 function populateWebinars(items) {
-  const options = items.length > 0 ? items : fallbackWebinars;
-
   webinarTitle.innerHTML = '';
-  options.forEach((item, index) => {
+  if (items.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Tiada tajuk webinar dalam Supabase.';
+    option.disabled = true;
+    option.selected = true;
+    webinarTitle.appendChild(option);
+    webinarDefaultValue = '';
+    webinarTitle.disabled = true;
+    webinarsLoaded = false;
+    updateSaveButtonState();
+    return;
+  }
+
+  items.forEach((item, index) => {
     const option = document.createElement('option');
     option.value = item.value;
     option.textContent = item.label || item.value;
@@ -78,14 +91,17 @@ function populateWebinars(items) {
     webinarTitle.appendChild(option);
   });
 
-  webinarDefaultValue = options[0]?.value || '';
+  webinarDefaultValue = items[0]?.value || '';
   webinarTitle.value = webinarDefaultValue;
   webinarTitle.disabled = false;
+  webinarsLoaded = true;
+  updateSaveButtonState();
 }
 
 async function loadWebinars() {
   webinarTitle.disabled = true;
-  saveButton.disabled = true;
+  webinarsLoaded = false;
+  updateSaveButtonState();
 
   try {
     const response = await fetch('/api/webinars', { cache: 'no-store' });
@@ -101,10 +117,64 @@ async function loadWebinars() {
 
     populateWebinars(items);
   } catch (error) {
-    populateWebinars(fallbackWebinars);
+    populateWebinars([]);
     setMessage(error.message || 'Gagal memuat tajuk webinar.', 'error');
-  } finally {
-    saveButton.disabled = false;
+  }
+}
+
+function populateCategories(items) {
+  category.innerHTML = '';
+  if (items.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Tiada kategori dalam Supabase.';
+    option.disabled = true;
+    option.selected = true;
+    category.appendChild(option);
+    categoryDefaultValue = '';
+    category.disabled = true;
+    categoriesLoaded = false;
+    updateSaveButtonState();
+    return;
+  }
+
+  items.forEach((item, index) => {
+    const option = document.createElement('option');
+    option.value = item.value;
+    option.textContent = item.label || item.value;
+    option.defaultSelected = index === 0;
+    option.selected = index === 0;
+    category.appendChild(option);
+  });
+
+  categoryDefaultValue = items[0]?.value || '';
+  category.value = categoryDefaultValue;
+  category.disabled = false;
+  categoriesLoaded = true;
+  updateSaveButtonState();
+}
+
+async function loadCategories() {
+  category.disabled = true;
+  categoriesLoaded = false;
+  updateSaveButtonState();
+
+  try {
+    const response = await fetch('/api/categories', { cache: 'no-store' });
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || 'Gagal memuat kategori.');
+    }
+
+    const items = Array.isArray(data.items)
+      ? data.items.filter((item) => item && typeof item.value === 'string' && item.value.trim())
+      : [];
+
+    populateCategories(items);
+  } catch (error) {
+    populateCategories([]);
+    setMessage(error.message || 'Gagal memuat kategori.', 'error');
   }
 }
 
@@ -112,6 +182,7 @@ function validateClient(payload) {
   const errors = [];
 
   if (!payload.webinarTitle.trim()) errors.push('Tajuk webinar diperlukan.');
+  if (!payload.category.trim()) errors.push('Kategori diperlukan.');
   if (!payload.fullName.trim()) errors.push('Nama penuh diperlukan.');
   if (!payload.email.trim()) errors.push('Email diperlukan.');
   if (!payload.identityNumber.trim()) errors.push('Nombor identiti diperlukan.');
@@ -175,11 +246,12 @@ async function submitForm(event) {
     form.reset();
     country.value = 'Malaysia';
     webinarTitle.value = webinarDefaultValue;
+    category.value = categoryDefaultValue;
     syncDynamicState();
   } catch (error) {
     setMessage(error.message, 'error');
   } finally {
-    saveButton.disabled = false;
+    updateSaveButtonState();
   }
 }
 
@@ -187,8 +259,10 @@ function handleReset() {
   form.reset();
   country.value = 'Malaysia';
   webinarTitle.value = webinarDefaultValue;
+  category.value = categoryDefaultValue;
   syncDynamicState();
   setMessage('', '');
+  updateSaveButtonState();
 }
 
 country.addEventListener('change', () => {
@@ -198,4 +272,6 @@ country.addEventListener('change', () => {
 form.addEventListener('submit', submitForm);
 resetButton.addEventListener('click', handleReset);
 syncDynamicState();
+updateSaveButtonState();
 loadWebinars();
+loadCategories();
