@@ -539,6 +539,24 @@ button.danger {
   flex: 1 1 0;
 }
 
+.admin-toolbar .sort-control {
+  display: grid;
+  gap: 8px;
+  flex: 1 1 180px;
+  min-width: 160px;
+}
+
+.admin-toolbar .sort-control label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-toolbar .sort-control select {
+  min-width: 0;
+}
+
 .range-separator {
   color: var(--muted);
   font-size: 0.82rem;
@@ -715,6 +733,7 @@ body.modal-open {
   .admin-toolbar input,
   .admin-toolbar select,
   .admin-toolbar .date-range,
+  .admin-toolbar .sort-control,
   .admin-toolbar button {
     width: 100%;
   }
@@ -722,6 +741,10 @@ body.modal-open {
   .admin-toolbar .date-range {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .admin-toolbar .sort-control {
+    flex: 1 1 auto;
   }
 
   .range-separator {
