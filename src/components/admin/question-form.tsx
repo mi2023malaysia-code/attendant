@@ -7,7 +7,7 @@ import {
   initialMutationState,
   type MutationState,
 } from '@/lib/admin/form-state';
-import { type QuestionType, QUESTION_TYPES } from '@/lib/admin/questions';
+import { QUESTION_TYPES, type QuestionType } from '@/lib/admin/question-types';
 import type { TopicRecord } from '@/lib/admin/topics';
 
 import { upsertQuestionAction } from '@/app/admin/(protected)/questionnaires/builder-actions';
