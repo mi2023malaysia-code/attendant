@@ -208,6 +208,10 @@ async function writeLocalContextSnapshot(context: AttendeeQuestionnaireContext) 
 }
 
 export function shouldUseLocalAttendeeStore() {
+  if (process.env.VERCEL) {
+    return false;
+  }
+
   return !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 }
 
