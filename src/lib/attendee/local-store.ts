@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import { normalizeInvitationToken } from '@/lib/invitation-token';
@@ -16,7 +17,9 @@ import type { WebinarRecord } from '@/lib/admin/webinars';
 const smokeTestToken = 'smoke-test-token-2026-08-01';
 const smokeTestTokenHash =
   '570a00bba7550b93a1d17a9a2a7ecec6f4ebef6c9b1c2327d82dbbe78abdc0d8';
-const localStateFilePath = join(process.cwd(), '.cache', 'attendee-smoke-state.json');
+const localStateFilePath = process.env.VERCEL
+  ? join(tmpdir(), 'attendee-smoke-state.json')
+  : join(process.cwd(), '.cache', 'attendee-smoke-state.json');
 
 function tokenPreview(token: string) {
   return token.length > 16 ? `${token.slice(0, 12)}...` : token;
