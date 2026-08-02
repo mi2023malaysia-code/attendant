@@ -1,7 +1,7 @@
 import 'server-only';
 
-import { QUESTION_TYPES, type QuestionType } from './question-types';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import type { QuestionType } from './question-types';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { toRow, toRows } from '@/lib/supabase/cast';
 
 export { QUESTION_TYPES } from './question-types';
@@ -78,7 +78,7 @@ const optionSelect = [
 ].join(', ');
 
 export async function listAdminQuestions(questionnaireVersionId: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
 
   const [questionsResult, optionsResult] = await Promise.all([
     supabase
@@ -119,7 +119,7 @@ export async function listAdminQuestions(questionnaireVersionId: string) {
 }
 
 export async function getAdminQuestion(questionId: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
 
   const [questionResult, optionsResult] = await Promise.all([
     supabase
@@ -153,7 +153,7 @@ export async function getAdminQuestion(questionId: string) {
 export async function getQuestionnaireVersionById(
   questionnaireVersionId: string,
 ) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
   const result = await supabase
     .from('117_questionnaire_versions')
     .select('id, questionnaire_id, status, version_number, created_at, updated_at')

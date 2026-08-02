@@ -12,7 +12,7 @@ import {
   readOptionalText,
   readText,
 } from '@/lib/admin/form-utils';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const webinarMutationSchema = z.object({
   id: z.string().uuid().nullable(),
@@ -53,7 +53,7 @@ export async function upsertWebinarAction(
   formData: FormData,
 ): Promise<MutationState> {
   const session = await requireAdminSession();
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
   const parsed = webinarMutationSchema.safeParse(buildWebinarInput(formData));
 
   if (!parsed.success) {
@@ -133,7 +133,7 @@ export async function upsertWebinarAction(
 
 export async function archiveWebinarAction(formData: FormData) {
   const session = await requireAdminSession();
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
   const id = readId(formData, 'id');
 
   if (!id) {

@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { toRows } from '@/lib/supabase/cast';
 
 export type TopicRecord = {
@@ -28,7 +28,7 @@ const topicSelect = [
 ].join(', ');
 
 export async function listAdminTopics() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
   const result = await supabase
     .from('117_topics')
     .select(topicSelect)

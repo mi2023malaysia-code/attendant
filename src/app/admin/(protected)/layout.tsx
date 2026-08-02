@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { isAdminAuthBypassEnabled } from '@/lib/admin/test-access';
 import { requireAdminSession } from '@/lib/auth';
 import { adminNav } from '@/lib/content';
 
@@ -12,6 +13,7 @@ export default async function ProtectedAdminLayout({
   children: ReactNode;
 }>) {
   const session = await requireAdminSession();
+  const testAccessEnabled = isAdminAuthBypassEnabled();
   const displayName = session.displayName ?? session.email ?? 'authenticated admin';
 
   return (
@@ -30,6 +32,17 @@ export default async function ProtectedAdminLayout({
                 Signed in as {displayName}. Route access is backed by Supabase
                 Auth and the admin profile table.
               </p>
+              {testAccessEnabled ? (
+                <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 px-4 py-3">
+                  <p className="text-xs uppercase tracking-[0.28em] text-amber-100/80">
+                    Test access
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-amber-50/90">
+                    Login is bypassed in this preview deployment so you can test
+                    the admin flows end to end. Re-enable auth before production.
+                  </p>
+                </div>
+              ) : null}
             </div>
 
             <nav aria-label="Admin navigation" className="space-y-2">

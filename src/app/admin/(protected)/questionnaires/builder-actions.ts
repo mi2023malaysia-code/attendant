@@ -18,7 +18,7 @@ import {
   getQuestionnaireVersionById,
   type QuestionType,
 } from '@/lib/admin/questions';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const questionTypeSchema = z.enum(QUESTION_TYPES);
 
@@ -91,7 +91,7 @@ function buildQuestionOptionInput(formData: FormData) {
 }
 
 async function getEditableVersion(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  supabase: Awaited<ReturnType<typeof createSupabaseAdminClient>>,
   questionnaireVersionId: string,
 ) {
   const { data, error } = await supabase
@@ -116,7 +116,7 @@ async function getEditableVersion(
 }
 
 async function getQuestionParentVersion(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  supabase: Awaited<ReturnType<typeof createSupabaseAdminClient>>,
   questionId: string,
 ) {
   const { data, error } = await supabase
@@ -153,7 +153,7 @@ export async function upsertQuestionAction(
   formData: FormData,
 ): Promise<MutationState> {
   const session = await requireAdminSession();
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
   const parsed = questionMutationSchema.safeParse(buildQuestionInput(formData));
 
   if (!parsed.success) {
@@ -245,7 +245,7 @@ export async function upsertQuestionOptionAction(
   formData: FormData,
 ): Promise<MutationState> {
   await requireAdminSession();
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
   const parsed = questionOptionMutationSchema.safeParse(
     buildQuestionOptionInput(formData),
   );

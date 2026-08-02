@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { toRow, toRows } from '@/lib/supabase/cast';
 import { slugify } from '@/lib/admin/slug';
 
@@ -62,7 +62,7 @@ const versionSelect = [
 ].join(', ');
 
 export async function listAdminQuestionnaires() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
 
   const [questionnairesResult, versionsResult] = await Promise.all([
     supabase
@@ -112,7 +112,7 @@ export async function listAdminQuestionnaires() {
 }
 
 export async function getAdminQuestionnaire(id: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
 
   const [questionnaireResult, versionsResult] = await Promise.all([
     supabase
@@ -149,7 +149,7 @@ export async function findAvailableQuestionnaireSlug(
   baseTitleOrSlug: string,
   excludedQuestionnaireId?: string,
 ) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
   const baseSlug = slugify(baseTitleOrSlug);
   let candidate = baseSlug;
 

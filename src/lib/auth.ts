@@ -3,6 +3,7 @@ import 'server-only';
 import { cache } from 'react';
 import { redirect } from 'next/navigation';
 
+import { isAdminAuthBypassEnabled, testAdminSession } from '@/lib/admin/test-access';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export type AdminSession = {
@@ -12,6 +13,10 @@ export type AdminSession = {
 };
 
 export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
+  if (isAdminAuthBypassEnabled()) {
+    return testAdminSession;
+  }
+
   let supabase;
 
   try {

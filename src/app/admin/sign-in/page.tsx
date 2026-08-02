@@ -1,8 +1,14 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 import { AdminSignInForm } from '@/components/admin/sign-in-form';
+import { isAdminAuthBypassEnabled } from '@/lib/admin/test-access';
 
 export default function AdminSignInPage() {
+  if (isAdminAuthBypassEnabled()) {
+    redirect('/admin');
+  }
+
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
       <header className="flex items-center justify-between rounded-full border border-white/10 bg-white/5 px-4 py-3 shadow-2xl shadow-cyan-950/10 backdrop-blur-xl">

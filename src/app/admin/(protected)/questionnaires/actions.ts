@@ -13,7 +13,7 @@ import {
 } from '@/lib/admin/form-utils';
 import { findAvailableQuestionnaireSlug } from '@/lib/admin/questionnaires';
 import { slugify } from '@/lib/admin/slug';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const questionnaireMutationSchema = z.object({
   id: z.string().uuid().nullable(),
@@ -46,7 +46,7 @@ function buildQuestionnaireInput(formData: FormData) {
 }
 
 async function insertInitialQuestionnaireVersion(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  supabase: Awaited<ReturnType<typeof createSupabaseAdminClient>>,
   questionnaireId: string,
   status: 'draft' | 'published' | 'archived',
   createdBy: string,
@@ -72,7 +72,7 @@ export async function upsertQuestionnaireAction(
   formData: FormData,
 ): Promise<MutationState> {
   const session = await requireAdminSession();
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
   const parsed = questionnaireMutationSchema.safeParse(
     buildQuestionnaireInput(formData),
   );
@@ -154,7 +154,7 @@ export async function upsertQuestionnaireAction(
 
 export async function archiveQuestionnaireAction(formData: FormData) {
   await requireAdminSession();
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
   const id = readId(formData, 'id');
 
   if (!id) {
@@ -180,7 +180,7 @@ export async function archiveQuestionnaireAction(formData: FormData) {
 
 export async function duplicateQuestionnaireAction(formData: FormData) {
   const session = await requireAdminSession();
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
   const sourceId = readId(formData, 'id');
 
   if (!sourceId) {
@@ -235,7 +235,7 @@ export async function duplicateQuestionnaireAction(formData: FormData) {
 
 export async function createQuestionnaireVersionAction(formData: FormData) {
   const session = await requireAdminSession();
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
   const questionnaireId = readId(formData, 'questionnaire_id');
   const changeSummary = readOptionalText(formData, 'change_summary');
 

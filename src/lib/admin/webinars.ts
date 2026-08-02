@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { toRow, toRows } from '@/lib/supabase/cast';
 
 export type WebinarRecord = {
@@ -34,7 +34,7 @@ const webinarSelect = [
 ].join(', ');
 
 export async function listAdminWebinars() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
 
   const { data, error } = await supabase
     .from('117_webinars')
@@ -49,7 +49,7 @@ export async function listAdminWebinars() {
 }
 
 export async function getAdminWebinar(id: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseAdminClient();
 
   const { data, error } = await supabase
     .from('117_webinars')
