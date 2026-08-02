@@ -11,6 +11,11 @@ import { toDateTimeLocalValue } from '@/lib/admin/datetime';
 
 import { upsertWebinarAction } from '@/app/admin/(protected)/webinars/actions';
 
+export type WebinarAction = (
+  previousState: MutationState,
+  formData: FormData,
+) => Promise<MutationState>;
+
 type WebinarFormValues = {
   id?: string;
   title?: string | null;
@@ -24,6 +29,7 @@ type WebinarFormValues = {
 type WebinarFormProps = {
   mode: 'create' | 'edit';
   initialValues?: WebinarFormValues;
+  action?: WebinarAction;
 };
 
 function FieldError({
@@ -46,9 +52,14 @@ function FieldError({
   );
 }
 
-export function WebinarForm({ mode, initialValues }: WebinarFormProps) {
+export function WebinarForm({
+  mode,
+  initialValues,
+  action,
+}: WebinarFormProps) {
+  const resolvedAction = action ?? upsertWebinarAction;
   const [state, formAction, pending] = useActionState(
-    upsertWebinarAction,
+    resolvedAction,
     initialMutationState,
   );
 
