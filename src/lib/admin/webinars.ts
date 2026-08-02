@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { toRow, toRows } from '@/lib/supabase/cast';
 
 export type WebinarRecord = {
   id: string;
@@ -44,7 +45,7 @@ export async function listAdminWebinars() {
     throw new Error(`Failed to load webinars: ${error.message}`);
   }
 
-  return (data ?? []) as WebinarRecord[];
+  return toRows<WebinarRecord>(data);
 }
 
 export async function getAdminWebinar(id: string) {
@@ -60,5 +61,5 @@ export async function getAdminWebinar(id: string) {
     throw new Error(`Failed to load webinar: ${error.message}`);
   }
 
-  return (data ?? null) as WebinarRecord | null;
+  return toRow<WebinarRecord>(data);
 }

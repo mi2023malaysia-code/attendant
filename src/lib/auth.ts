@@ -12,26 +12,21 @@ export type AdminSession = {
 };
 
 export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
-  const supabase = await createSupabaseServerClient().catch(() => null);
+  let supabase;
 
-  if (!supabase) {
+  try {
+    supabase = await createSupabaseServerClient();
+  } catch {
     return null;
   }
 
-  const userResponse = await (
-    supabase.auth as {
-      getUser: () => Promise<{
-        data: {
-          user: {
-            id: string;
-            email: string | null;
-          } | null;
-        };
-      }>;
-    }
-  )
-    .getUser()
-    .catch(() => null);
+  let userResponse;
+
+  try {
+    userResponse = await supabase.auth.getUser();
+  } catch {
+    return null;
+  }
 
   if (!userResponse) {
     return null;
@@ -45,14 +40,15 @@ export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
     return null;
   }
 
-  const profileResult = await supabase
-    .from('117_admin_profiles')
-    .select('user_id, display_name')
-    .eq('user_id', user.id)
-    .maybeSingle()
-    .catch(() => null);
+  let profileResult;
 
-  if (!profileResult) {
+  try {
+    profileResult = await supabase
+      .from('117_admin_profiles')
+      .select('user_id, display_name')
+      .eq('user_id', user.id)
+      .maybeSingle();
+  } catch {
     return null;
   }
 

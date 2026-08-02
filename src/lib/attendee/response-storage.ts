@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { getSupabaseServiceClient } from '@/lib/supabase/service-role';
+import { toRow, toRows } from '@/lib/supabase/cast';
 
 export type ResponseRecord = {
   id: string;
@@ -99,7 +100,7 @@ export async function getDraftResponseByInvitationToken(invitationTokenId: strin
     throw new Error(`Failed to load response draft: ${result.error.message}`);
   }
 
-  return (result.data ?? null) as ResponseRecord | null;
+  return toRow<ResponseRecord>(result.data);
 }
 
 export async function getResponseAnswers(responseId: string) {
@@ -114,7 +115,7 @@ export async function getResponseAnswers(responseId: string) {
     throw new Error(`Failed to load response answers: ${result.error.message}`);
   }
 
-  return (result.data ?? []) as ResponseAnswerRecord[];
+  return toRows<ResponseAnswerRecord>(result.data);
 }
 
 export async function ensureDraftResponse(payload: DraftResponsePayload) {
@@ -145,7 +146,7 @@ export async function ensureDraftResponse(payload: DraftResponsePayload) {
     throw new Error(`Failed to create response draft: ${result.error.message}`);
   }
 
-  return result.data as ResponseRecord;
+  return toRow<ResponseRecord>(result.data);
 }
 
 export async function saveResponseAnswer(payload: SaveResponseAnswerPayload) {
@@ -172,7 +173,7 @@ export async function saveResponseAnswer(payload: SaveResponseAnswerPayload) {
     throw new Error(`Failed to save response answer: ${result.error.message}`);
   }
 
-  return result.data as ResponseAnswerRecord;
+  return toRow<ResponseAnswerRecord>(result.data);
 }
 
 export async function markResponseSubmitted(responseId: string) {
@@ -192,5 +193,5 @@ export async function markResponseSubmitted(responseId: string) {
     throw new Error(`Failed to submit response: ${result.error.message}`);
   }
 
-  return result.data as ResponseRecord;
+  return toRow<ResponseRecord>(result.data);
 }

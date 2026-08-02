@@ -2,6 +2,7 @@ import 'server-only';
 
 import { QUESTION_TYPES, type QuestionType } from './question-types';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { toRow, toRows } from '@/lib/supabase/cast';
 
 export { QUESTION_TYPES } from './question-types';
 export type { QuestionType } from './question-types';
@@ -101,8 +102,8 @@ export async function listAdminQuestions(questionnaireVersionId: string) {
     );
   }
 
-  const questions = (questionsResult.data ?? []) as QuestionRecord[];
-  const options = (optionsResult.data ?? []) as QuestionOptionRecord[];
+  const questions = toRows<QuestionRecord>(questionsResult.data);
+  const options = toRows<QuestionOptionRecord>(optionsResult.data);
   const optionsByQuestionId = new Map<string, QuestionOptionRecord[]>();
 
   for (const option of options) {
@@ -144,8 +145,8 @@ export async function getAdminQuestion(questionId: string) {
   }
 
   return {
-    question: (questionResult.data ?? null) as QuestionRecord | null,
-    options: (optionsResult.data ?? []) as QuestionOptionRecord[],
+    question: toRow<QuestionRecord>(questionResult.data),
+    options: toRows<QuestionOptionRecord>(optionsResult.data),
   };
 }
 

@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { toRows } from '@/lib/supabase/cast';
 
 export type TopicRecord = {
   id: string;
@@ -38,5 +39,5 @@ export async function listAdminTopics() {
     throw new Error(`Failed to load topics: ${result.error.message}`);
   }
 
-  return (result.data ?? []) as TopicRecord[];
+  return toRows<TopicRecord>(result.data);
 }

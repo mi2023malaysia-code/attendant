@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { toRow, toRows } from '@/lib/supabase/cast';
 import { slugify } from '@/lib/admin/slug';
 
 export type QuestionnaireRecord = {
@@ -86,8 +87,10 @@ export async function listAdminQuestionnaires() {
     );
   }
 
-  const questionnaireRows = (questionnairesResult.data ?? []) as QuestionnaireRecord[];
-  const versionRows = (versionsResult.data ?? []) as QuestionnaireVersionRecord[];
+  const questionnaireRows = toRows<QuestionnaireRecord>(
+    questionnairesResult.data,
+  );
+  const versionRows = toRows<QuestionnaireVersionRecord>(versionsResult.data);
 
   const versionsByQuestionnaireId = new Map<string, QuestionnaireVersionRecord[]>();
 
@@ -137,8 +140,8 @@ export async function getAdminQuestionnaire(id: string) {
   }
 
   return {
-    questionnaire: (questionnaireResult.data ?? null) as QuestionnaireRecord | null,
-    versions: (versionsResult.data ?? []) as QuestionnaireVersionRecord[],
+    questionnaire: toRow<QuestionnaireRecord>(questionnaireResult.data),
+    versions: toRows<QuestionnaireVersionRecord>(versionsResult.data),
   };
 }
 

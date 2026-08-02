@@ -9,6 +9,7 @@ import type {
 import type { QuestionnaireRecord, QuestionnaireVersionRecord } from '@/lib/admin/questionnaires';
 import type { WebinarRecord } from '@/lib/admin/webinars';
 import { getSupabaseAttendeeClient } from '@/lib/supabase/attendee';
+import { toRow, toRows } from '@/lib/supabase/cast';
 import {
   loadLocalAttendeeQuestionnaireContext,
   shouldUseLocalAttendeeStore,
@@ -198,7 +199,7 @@ export async function loadAttendeeQuestionnaireContext(rawToken: string) {
     throw new Error(`Failed to load invitation token: ${invitationResult.error.message}`);
   }
 
-  const invitationToken = invitationResult.data as InvitationTokenRecord | null;
+  const invitationToken = toRow<InvitationTokenRecord>(invitationResult.data);
 
   if (!invitationToken || invitationToken.revoked_at || !isTokenActive(invitationToken.status)) {
     return null;
@@ -229,8 +230,8 @@ export async function loadAttendeeQuestionnaireContext(rawToken: string) {
     throw new Error(`Failed to load assignment: ${assignmentResult.error.message}`);
   }
 
-  const attendee = attendeeResult.data as AttendeeRecord | null;
-  const assignment = assignmentResult.data as AssignmentRecord | null;
+  const attendee = toRow<AttendeeRecord>(attendeeResult.data);
+  const assignment = toRow<AssignmentRecord>(assignmentResult.data);
 
   if (!attendee || !assignment || assignment.status !== 'active') {
     return null;
@@ -261,8 +262,10 @@ export async function loadAttendeeQuestionnaireContext(rawToken: string) {
     throw new Error(`Failed to load questionnaire version: ${versionResult.error.message}`);
   }
 
-  const webinar = webinarResult.data as WebinarRecord | null;
-  const questionnaireVersion = versionResult.data as QuestionnaireVersionRecord | null;
+  const webinar = toRow<WebinarRecord>(webinarResult.data);
+  const questionnaireVersion = toRow<QuestionnaireVersionRecord>(
+    versionResult.data,
+  );
 
   if (!webinar || !questionnaireVersion) {
     return null;
@@ -288,7 +291,7 @@ export async function loadAttendeeQuestionnaireContext(rawToken: string) {
     throw new Error(`Failed to load questionnaire: ${questionnaireResult.error.message}`);
   }
 
-  const questionnaire = questionnaireResult.data as QuestionnaireRecord | null;
+  const questionnaire = toRow<QuestionnaireRecord>(questionnaireResult.data);
 
   if (!questionnaire) {
     return null;
@@ -319,8 +322,8 @@ export async function loadAttendeeQuestionnaireContext(rawToken: string) {
   }
 
   const questions = groupQuestionsWithOptions(
-    (questionsResult.data ?? []) as QuestionRecord[],
-    (optionsResult.data ?? []) as QuestionOptionRecord[],
+    toRows<QuestionRecord>(questionsResult.data),
+    toRows<QuestionOptionRecord>(optionsResult.data),
   );
 
   const responseResult = await supabase
@@ -354,7 +357,7 @@ export async function loadAttendeeQuestionnaireContext(rawToken: string) {
     throw new Error(`Failed to load response: ${responseResult.error.message}`);
   }
 
-  const response = (responseResult.data ?? null) as ResponseRecord | null;
+  const response = toRow<ResponseRecord>(responseResult.data);
 
   let responseAnswers: ResponseAnswerRecord[] = [];
 
@@ -381,7 +384,7 @@ export async function loadAttendeeQuestionnaireContext(rawToken: string) {
       throw new Error(`Failed to load response answers: ${answerResult.error.message}`);
     }
 
-    responseAnswers = (answerResult.data ?? []) as ResponseAnswerRecord[];
+    responseAnswers = toRows<ResponseAnswerRecord>(answerResult.data);
   }
 
   if (invitationToken.status === 'issued') {
