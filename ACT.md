@@ -72,3 +72,10 @@ Captured at: 2026-08-01T09:27:22.2815816+08:00
 - [2026-08-01T23:59:59.0000000+08:00] assistant: The first lockfile repair was not enough, so I traced the remaining malformed optional native package entries in `package-lock.json` and filled in their missing version fields from the parent dependency metadata. The lockfile now has zero package entries without a version, which should unblock Vercel's `npm install` step on the next push.
 - [2026-08-02T08:13:31.1853791+08:00] assistant: Confirmed the app is a Next.js project but the Vercel project metadata was still set to the `node` framework, which explains the missing-entrypoint build failure. Added a repo-level `vercel.json` override so Vercel treats this deployment as `nextjs` instead of a plain Node server.
 - [2026-08-02T08:40:57.5221685+08:00] assistant: The Next.js build then surfaced strict TypeScript casts around Supabase query results and a server/auth `.catch` misuse. I split shared question-type metadata out of the server-only admin module, added shared Supabase cast helpers, rewired the affected query helpers and auth flow, and confirmed `npm run typecheck` now passes cleanly.
+- [2026-08-02T10:44:04.3464117+08:00] user: append conversion;
+- [2026-08-02T10:44:04.3464117+08:00] assistant: Appended the latest conversation entry to ACT.md.
+- [2026-08-02T10:56:17.9944694+08:00] user: modify https://attendant-5votj959u-mi2023alaysia.vercel.app/[ by-pass admin login page and auth direct go to admin panel.
+- [2026-08-02T10:56:17.9944694+08:00] user: append conversion;
+- [2026-08-02T10:56:17.9944694+08:00] assistant: The preview admin bypass is already wired in the branch, so `/admin/sign-in` now redirects straight to the admin panel when the deployment is in preview mode. I recorded this request in ACT.md without making a redundant code change.
+- [2026-08-02T11:29:39.5618496+08:00] user: git commit branch name bypass to github keep the app protected and just use the branch as-is for internal testing.
+- [2026-08-02T11:29:39.5618496+08:00] assistant: Created a GitHub branch named `bypass` for internal testing and kept the app protection in place.
